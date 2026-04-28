@@ -1,7 +1,7 @@
 import asyncio
 
 from codextrading.config import AppConfig
-from codextrading.ib_client import AsyncIBMarketDataClient
+from codextrading.ib_client import AsyncIBMarketDataClient, MarketSnapshot
 
 
 def test_market_data_client_updates_bid_and_ask() -> None:
@@ -18,3 +18,27 @@ def test_market_data_client_updates_bid_and_ask() -> None:
         assert snapshot.ask == 184.30
     finally:
         loop.close()
+
+
+def test_consume_stops_cleanly_after_duration_when_data_was_received() -> None:
+    async def runner() -> None:
+        config = AppConfig(symbols={"AAPL"}, duration_seconds=1)
+        client = AsyncIBMarketDataClient(config, asyncio.get_running_loop())
+        await client.queue.put(MarketSnapshot(symbol="AAPL", timestamp=1.0, last=184.25))
+        await client.consume()
+
+    asyncio.run(runner())
+
+
+def test_consume_times_out_when_no_data_is_received() -> None:
+    async def runner() -> None:
+        config = AppConfig(symbols={"AAPL"}, duration_seconds=1)
+        client = AsyncIBMarketDataClient(config, asyncio.get_running_loop())
+        try:
+            await client.consume()
+        except TimeoutError as exc:
+            assert "No market data received within timeout for symbols: AAPL" in str(exc)
+        else:
+            raise AssertionError("Expected TimeoutError when no market data is received.")
+
+    asyncio.run(runner())

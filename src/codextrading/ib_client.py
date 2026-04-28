@@ -50,6 +50,7 @@ class AsyncIBMarketDataClient(EWrapper, EClient):
         self._latest_by_symbol: dict[str, MarketSnapshot] = {}
         self._output_path = Path(config.output_path) if config.output_path else None
         self._seen_symbols: Set[str] = set()
+        self._received_data = False
 
     def nextValidId(self, order_id: int) -> None:  # noqa: N802
         LOGGER.debug("Received next valid id: %s", order_id)
@@ -150,17 +151,31 @@ class AsyncIBMarketDataClient(EWrapper, EClient):
     async def consume(self) -> None:
         start_time = self.loop.time()
         while True:
-            timed_out = self.loop.time() - start_time >= self.config.duration_seconds
+            elapsed = self.loop.time() - start_time
+            timed_out = elapsed >= self.config.duration_seconds
             if not self.config.snapshot and timed_out:
                 duration_seconds = self.config.duration_seconds
                 LOGGER.info("Reached requested duration of %s seconds", duration_seconds)
                 break
+
+            wait_timeout = 10.0
+            if not self.config.snapshot:
+                remaining = self.config.duration_seconds - elapsed
+                wait_timeout = max(0.0, min(wait_timeout, remaining))
+                if wait_timeout == 0.0:
+                    continue
+
             try:
-                snapshot = await asyncio.wait_for(self.queue.get(), timeout=10)
+                snapshot = await asyncio.wait_for(self.queue.get(), timeout=wait_timeout)
             except TimeoutError as exc:
+                if self._received_data and not self.config.snapshot:
+                    LOGGER.info("No additional market data received before session end.")
+                    break
                 symbols = ",".join(sorted(self.config.symbols))
                 message = f"No market data received within timeout for symbols: {symbols}"
                 raise TimeoutError(message) from exc
+
+            self._received_data = True
             self._write_snapshot(snapshot)
             self._log_snapshot(snapshot)
             if self.config.snapshot:
