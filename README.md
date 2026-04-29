@@ -32,6 +32,7 @@ Detailed interpretation and implementation sequencing live in:
 - [docs/context.md](C:\Users\Girish\Desktop\CodexTrading\docs\context.md)
 - [docs/project_tracker.md](C:\Users\Girish\Desktop\CodexTrading\docs\project_tracker.md)
 - [docs/session_memory.md](C:\Users\Girish\Desktop\CodexTrading\docs\session_memory.md)
+- [docs/trading_rules.md](C:\Users\Girish\Desktop\CodexTrading\docs\trading_rules.md)
 
 ## Project Layout
 
