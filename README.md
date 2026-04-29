@@ -8,6 +8,7 @@ CodexTrading is a production-oriented Python trading application scaffold for In
 - Use `asyncio`, `argparse`, `dataclasses`, `Optional`, and `Set`
 - Provide a clean package layout, tests, and CI/CD automation
 - Capture product context, architecture direction, and tracked work in repository docs
+- Preserve cross-session project context with semantic session memory
 
 ## Trading Rules Summary
 
@@ -30,6 +31,7 @@ Detailed interpretation and implementation sequencing live in:
 - [docs/design.md](C:\Users\Girish\Desktop\CodexTrading\docs\design.md)
 - [docs/context.md](C:\Users\Girish\Desktop\CodexTrading\docs\context.md)
 - [docs/project_tracker.md](C:\Users\Girish\Desktop\CodexTrading\docs\project_tracker.md)
+- [docs/session_memory.md](C:\Users\Girish\Desktop\CodexTrading\docs\session_memory.md)
 
 ## Project Layout
 
@@ -91,6 +93,24 @@ Build distributable artifacts:
 python -m build
 ```
 
+Start a memory-tracked project session:
+
+```bash
+python main.py memory start --project CodexTrading --title "Session handoff" --objective "Capture current implementation state"
+```
+
+Build a semantic brief for the next session:
+
+```bash
+python main.py memory brief --project CodexTrading --query "What should I know before continuing this project?"
+```
+
+Automatically capture a tool run into session memory:
+
+```bash
+python main.py memory exec --project CodexTrading --session-id <id> -- python -m pytest
+```
+
 ## CI/CD
 
 GitHub Actions are included for:
@@ -111,6 +131,7 @@ See:
 - Add execution, risk, and portfolio services
 - Persist audit-grade trade logs and decision traces
 - Add paper trading and production deployment profiles
+- Add automatic wrappers that capture shell, test, and build observations into session memory
 
 ## Notes
 

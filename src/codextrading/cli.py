@@ -1,14 +1,47 @@
 from __future__ import annotations
 
 import argparse
+import sys
+from typing import Optional
 
 from codextrading.config import AppConfig
+from codextrading.memory_cli import add_memory_subcommands
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
+        description="CodexTrading application and session memory tools."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Stream market data from Interactive Brokers using ibapi and asyncio.",
+    )
+    _add_run_arguments(run_parser)
+    add_memory_subcommands(subparsers)
+    return parser
+
+
+def build_run_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
         description="Stream market data from Interactive Brokers using ibapi and asyncio."
     )
+    _add_run_arguments(parser)
+    return parser
+
+
+def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
+    raw_args = list(sys.argv[1:] if argv is None else argv)
+    if not raw_args or raw_args[0].startswith("-"):
+        parser = build_run_parser()
+        parsed = parser.parse_args(raw_args)
+        parsed.command = "run"
+        return parsed
+    return build_parser().parse_args(raw_args)
+
+
+def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--symbols", nargs="+", default=["AAPL"], help="Symbols to subscribe to.")
     parser.add_argument("--host", default="127.0.0.1", help="IB Gateway or TWS host.")
     parser.add_argument("--port", type=int, default=7497, help="IB Gateway or TWS API port.")
@@ -43,7 +76,6 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional file path for line-delimited JSON output.",
     )
-    return parser
 
 
 def parse_config(args: argparse.Namespace) -> AppConfig:

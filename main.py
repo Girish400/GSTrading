@@ -8,12 +8,10 @@ if str(SRC_PATH) not in sys.path:
 
 
 def main() -> int:
-    from codextrading.cli import build_parser, parse_config
-    from codextrading.service import run_application
+    from codextrading.cli import parse_args
+    from codextrading.service import run_from_args
 
-    parser = build_parser()
-    config = parse_config(parser.parse_args())
-    return run_application(config)
+    return run_from_args(parse_args())
 
 
 if __name__ == "__main__":

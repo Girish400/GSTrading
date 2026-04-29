@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from codextrading.cli import parse_config
 from codextrading.config import AppConfig
 from codextrading.ib_client import AsyncIBMarketDataClient
+from codextrading.memory_cli import run_memory_command
 
 
 def configure_logging(level: str) -> None:
@@ -29,3 +31,9 @@ async def run_market_data_session(config: AppConfig) -> int:
 def run_application(config: AppConfig) -> int:
     configure_logging(config.log_level)
     return asyncio.run(run_market_data_session(config))
+
+
+def run_from_args(args) -> int:
+    if args.command == "memory":
+        return run_memory_command(args)
+    return run_application(parse_config(args))
